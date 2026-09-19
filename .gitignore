@@ -1,0 +1,6 @@
+# Arduino/PlatformIO build output
+build/
+.pio/
+*.elf
+*.uf2
+*.bin
