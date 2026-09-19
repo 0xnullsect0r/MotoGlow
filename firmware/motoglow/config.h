@@ -30,8 +30,18 @@
 
 // ─── Power budget ────────────────────────────────────────────────────────────
 // The renderer estimates strip current every frame and scales brightness down
-// if a frame would exceed this. Keep it comfortably under the fuse rating.
-#define MAX_STRIP_CURRENT_MA   4000
+// if a frame would exceed this.
+//
+// Sizing, for the stock 69-pixel build: every pixel at full white is
+// 69 x 41.7 mA = 2.88 A, so that is the hard ceiling no matter what the
+// firmware does. The PCB's power traces are 1.5 mm on 1 oz copper, good for
+// about 3.7 A, and the inline fuse is 5 A. 2500 mA sits below the physical
+// ceiling, so the limiter actually engages on white-heavy frames rather than
+// being a number that never does anything.
+//
+// If you lengthen the strips, raise this AND re-check the trace and fuse
+// ratings -- see hardware/motoglow-pcb/README.md.
+#define MAX_STRIP_CURRENT_MA   2500
 #define SUPPLY_VOLTS           12.0f
 
 // Battery protection. The bike is wired battery-direct, so the firmware watches
