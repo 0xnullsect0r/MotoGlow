@@ -4,3 +4,7 @@ build/
 *.elf
 *.uf2
 *.bin
+
+# Python
+__pycache__/
+*.pyc
