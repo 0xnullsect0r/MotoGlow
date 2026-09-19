@@ -1,0 +1,549 @@
+<title>MotoGlow Preset Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ink:#0A0C0F; --panel:#12161C; --panel-2:#171C24; --rule:#242C36;
+  --dust:#7D8895; --bone:#E6E9ED; --signal:#FF6A00; --signal-dim:#7A3400;
+  --ok:#4ADE80; --warn:#FBBF24;
+  --sans:"Archivo",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ink); color:var(--bone);
+  font-family:var(--sans); font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:28px 56px}
+
+header{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:6px}
+h1{
+  font-size:clamp(26px,4.2vw,40px); font-weight:700; letter-spacing:-.022em;
+  margin:0; text-wrap:balance;
+}
+h1 span{color:var(--signal)}
+.tagline{color:var(--dust); font-size:14px; max-width:62ch; margin:0 0 22px}
+
+/* ---- stage ---- */
+.stage{
+  position:relative; background:var(--panel); border:1px solid var(--rule);
+  border-radius:3px; overflow:hidden;
+}
+.stage canvas{display:block; width:100%; height:auto}
+.stage-tag{
+  position:absolute; left:12px; top:10px; font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--dust); pointer-events:none;
+}
+.stage-tag b{color:var(--bone); font-weight:500}
+
+/* ---- instrument row ---- */
+.rack{
+  display:grid; gap:14px; margin-top:14px; align-items:start;
+  grid-template-columns:1fr;
+}
+@media(min-width:760px){ .rack{grid-template-columns:1fr auto} }
+.panel{
+  background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  padding:14px 14px 15px;
+}
+.panel h2{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--dust); font-weight:500; margin:0 0 11px;
+}
+.presets{display:flex; flex-wrap:wrap; gap:6px}
+.chip{
+  font-family:var(--sans); font-size:13px; font-weight:500; color:var(--dust);
+  background:var(--panel-2); border:1px solid var(--rule); border-radius:2px;
+  padding:6px 10px; cursor:pointer; transition:color .12s, border-color .12s, background .12s;
+  display:inline-flex; align-items:center; gap:7px;
+}
+.chip:hover{color:var(--bone); border-color:#33404E}
+.chip[aria-pressed="true"]{color:var(--ink); background:var(--signal); border-color:var(--signal); font-weight:600}
+.chip i{width:7px; height:7px; border-radius:50%; flex:none; display:block}
+.chip:focus-visible,button:focus-visible{outline:2px solid var(--signal); outline-offset:2px}
+
+.knobs{display:flex; flex-direction:column; gap:13px; min-width:210px}
+.seg{display:flex; gap:0; border:1px solid var(--rule); border-radius:2px; overflow:hidden}
+.seg button{
+  flex:1; font-family:var(--mono); font-size:11.5px; letter-spacing:.04em;
+  background:var(--panel-2); color:var(--dust); border:0; border-right:1px solid var(--rule);
+  padding:7px 4px; cursor:pointer; transition:color .12s, background .12s;
+}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--bone)}
+.seg button[aria-pressed="true"]{background:var(--signal); color:var(--ink); font-weight:500}
+.ghost{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+  background:transparent; color:var(--dust); border:1px solid var(--rule); border-radius:2px;
+  padding:8px 10px; cursor:pointer; width:100%; transition:color .12s, border-color .12s;
+}
+.ghost:hover{color:var(--signal); border-color:var(--signal-dim)}
+
+/* ---- readout ---- */
+.readout{
+  display:grid; gap:1px; margin-top:14px; background:var(--rule);
+  border:1px solid var(--rule); border-radius:3px; overflow:hidden;
+  grid-template-columns:repeat(2,1fr);
+}
+@media(min-width:680px){ .readout{grid-template-columns:repeat(4,1fr)} }
+.cell{background:var(--panel); padding:12px 14px 13px}
+.cell dt{
+  font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--dust); margin:0 0 5px;
+}
+.cell dd{
+  margin:0; font-family:var(--mono); font-size:17px; font-weight:500;
+  font-variant-numeric:tabular-nums; color:var(--bone);
+}
+.cell dd small{font-size:11.5px; color:var(--dust); font-weight:400}
+.bar{height:3px; background:var(--panel-2); border-radius:2px; margin-top:8px; overflow:hidden}
+.bar i{display:block; height:100%; background:var(--ok); width:0; transition:width .1s linear}
+
+.note{
+  margin-top:26px; padding-top:18px; border-top:1px solid var(--rule);
+  color:var(--dust); font-size:13.5px; max-width:74ch;
+}
+.note b{color:var(--bone); font-weight:600}
+.note code{font-family:var(--mono); font-size:12.5px; color:var(--bone)}
+.note p{margin:0 0 10px}
+@media(prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Moto<span>Glow</span> Preset Bench</h1>
+  </header>
+  <p class="tagline">
+    Sixteen presets running the same maths as the firmware, drawn on a KTM 890 Adventure
+    at the coordinates the controller actually uses. Everything flows front to rear because
+    the code cannot express any other direction.
+  </p>
+
+  <div class="stage">
+    <canvas id="cv" width="1600" height="720" aria-label="Side elevation of a KTM 890 Adventure with the LED strip runs animating"></canvas>
+    <div class="stage-tag">Side elevation &middot; <b id="tagName">Ignition</b> &middot; near side solid, far side dimmed</div>
+  </div>
+
+  <div class="rack">
+    <div class="panel">
+      <h2>Preset &mdash; short press on the handlebar button</h2>
+      <div class="presets" id="presets" role="group" aria-label="Preset"></div>
+    </div>
+    <div class="panel knobs">
+      <div>
+        <h2>Brightness &mdash; hold 0.8 s</h2>
+        <div class="seg" id="bright" role="group" aria-label="Brightness"></div>
+      </div>
+      <div>
+        <h2>Speed &mdash; hold 3 s</h2>
+        <div class="seg" id="speed" role="group" aria-label="Speed"></div>
+      </div>
+      <button class="ghost" id="bootBtn">Replay power-on</button>
+    </div>
+  </div>
+
+  <dl class="readout">
+    <div class="cell"><dt>Motion primitive</dt><dd id="roMotion">block</dd></div>
+    <div class="cell"><dt>Travel speed</dt><dd id="roSpeed">0.38 <small>bike-lengths/s</small></dd></div>
+    <div class="cell"><dt>Pixels lit</dt><dd id="roPix">0 <small>/ 69</small></dd></div>
+    <div class="cell">
+      <dt>Strip current</dt>
+      <dd id="roAmps">0 <small>mA</small></dd>
+      <div class="bar"><i id="roBar"></i></div>
+    </div>
+  </dl>
+
+  <div class="note">
+    <p><b>The current figure is the firmware's own estimator</b>, not a decoration: it sums
+      every channel of every pixel, scales by the 41.7&nbsp;mA a full-white COB pixel draws at
+      12&nbsp;V, and applies the brightness setting. The bar fills against the 2500&nbsp;mA cap,
+      and turns amber when the limiter engages and starts pulling the whole frame down.
+      Chrome and Arctic Pulse will get there; Midnight never will.</p>
+    <p><b>Faithful:</b> the segment positions, pixel counts, all eight motion primitives, the
+      palettes, the speed and brightness tables, the 400&nbsp;ms preset crossfade and the
+      power-on sequence. <b>Approximate:</b> Ember's noise field is a different generator than
+      FastLED's <code>inoise8</code>, and palettes interpolate continuously here rather than
+      through 16 quantised entries. And a screen cannot show you what 500&nbsp;mm of COB does
+      to a fork leg at night.</p>
+  </div>
+</div>
+<script>
+"use strict";
+const PAL = {"p_ignition": [[0, 6, 1, 0], [100, 10, 2, 0], [128, 255, 255, 225], [160, 255, 120, 0], [228, 255, 40, 0], [255, 40, 4, 0]], "p_orange_crush": [[0, 255, 55, 0], [70, 255, 120, 0], [130, 255, 180, 25], [190, 255, 90, 0], [255, 255, 55, 0]], "p_race": [[0, 255, 245, 230], [40, 255, 140, 0], [120, 255, 45, 0], [255, 24, 2, 0]], "p_ice": [[0, 235, 250, 255], [64, 70, 200, 255], [140, 0, 90, 230], [200, 4, 30, 140], [255, 235, 250, 255]], "p_deep_blue": [[0, 0, 2, 14], [100, 2, 6, 30], [128, 230, 245, 255], [170, 10, 90, 255], [228, 0, 30, 190], [255, 0, 8, 60]], "p_menace": [[0, 255, 200, 180], [30, 255, 30, 0], [110, 150, 0, 0], [255, 30, 0, 0]], "p_synthwave": [[0, 255, 0, 140], [110, 255, 30, 180], [145, 0, 220, 255], [255, 0, 160, 255]], "p_toxic": [[0, 30, 255, 0], [90, 170, 255, 0], [160, 10, 255, 60], [255, 60, 255, 0]], "p_gold": [[0, 255, 150, 0], [80, 255, 200, 60], [150, 255, 235, 170], [255, 255, 140, 0]], "p_violet": [[0, 120, 0, 255], [70, 220, 0, 220], [140, 255, 40, 150], [200, 170, 0, 255], [255, 120, 0, 255]], "p_firefly": [[0, 255, 190, 110], [120, 255, 225, 175], [200, 255, 160, 70], [255, 255, 190, 110]], "p_ember": [[0, 0, 0, 0], [40, 120, 0, 0], [110, 235, 45, 0], [180, 255, 140, 0], [230, 255, 215, 90], [255, 255, 255, 210]], "p_arctic": [[0, 200, 240, 255], [90, 40, 150, 255], [170, 0, 70, 200], [255, 160, 225, 255]], "p_midnight": [[0, 8, 0, 40], [80, 30, 0, 110], [150, 60, 10, 160], [220, 20, 0, 80], [255, 8, 0, 40]], "p_mono_white": [[0, 2, 2, 3], [100, 6, 6, 8], [128, 255, 255, 255], [180, 210, 225, 255], [228, 120, 160, 220], [255, 10, 14, 24]]};
+
+/* ---- presets, mirrored from firmware/motoglow/presets.cpp ---- */
+const M = {BLOCK:0,COMET:1,GRADIENT:2,RAINBOW:3,SPARKLE:4,BARBER:5,PULSE:6,EMBER:7};
+const MNAME = ["block","comet","gradient","rainbow","sparkle","barber","pulse","ember"];
+const PRESETS = [
+ ["Ignition",     M.BLOCK,   "p_ignition",    0.38,0.22, 0.0, 18],
+ ["Orange Crush", M.GRADIENT,"p_orange_crush",0.22,0.0,  1.0,  0],
+ ["Ready to Race",M.COMET,   "p_race",        0.85,0.0,  0.16,30],
+ ["Rainbow Flow", M.RAINBOW, "p_ice",         0.20,0.0,  1.0,  0],
+ ["Ice",          M.GRADIENT,"p_ice",         0.14,0.0,  1.0,  0],
+ ["Deep Blue",    M.BLOCK,   "p_deep_blue",   0.30,0.28, 0.0, 26],
+ ["Chrome",       M.BLOCK,   "p_mono_white",  0.34,0.20, 0.0, 14],
+ ["Menace",       M.COMET,   "p_menace",      0.55,0.0,  0.22,55],
+ ["Synthwave",    M.BARBER,  "p_synthwave",   0.30,0.0,  4.0,  0],
+ ["Toxic",        M.SPARKLE, "p_toxic",       0.65,0.05, 9.0, 40],
+ ["Gold Rush",    M.SPARKLE, "p_gold",        0.45,0.06, 6.0, 90],
+ ["Violet Drift", M.GRADIENT,"p_violet",      0.12,0.0,  1.0,  0],
+ ["Firefly",      M.SPARKLE, "p_firefly",     0.28,0.045,3.0, 12],
+ ["Ember",        M.EMBER,   "p_ember",       0.18,0.0, 26.0,  0],
+ ["Arctic Pulse", M.PULSE,   "p_arctic",      0.35,0.0,  2.5, 60],
+ ["Midnight",     M.PULSE,   "p_midnight",    0.09,0.0,  1.5, 35],
+];
+const BRIGHT = [0.18,0.40,0.70,1.00];
+const SPEEDS = [0.55,1.00,1.70];
+const MA_PER_PIXEL_FULL = (10.0/20.0)/12.0*1000.0;   // 41.67 mA
+const MAX_MA = 2500;
+
+/* ---- bike map, mirrored from firmware/motoglow/bike_map.cpp ---- */
+const SEGMENTS = [
+ ["fork",     4, 0.030,0.280, 0.060,0.460, -1],
+ ["tank",     9, 0.280,0.440, 0.520,0.480, -1],
+ ["seat",     8, 0.540,0.560, 0.820,0.545, -1],
+ ["swingarm", 6, 0.580,0.300, 0.880,0.265, -1],
+ ["fork",     4, 0.030,0.280, 0.060,0.460,  1],
+ ["tank",     9, 0.280,0.440, 0.520,0.480,  1],
+ ["seat",     8, 0.540,0.560, 0.820,0.545,  1],
+ ["swingarm", 6, 0.580,0.300, 0.880,0.265,  1],
+ ["engine",  10, 0.330,0.180, 0.550,0.185,  0],
+ ["tail",     5, 0.860,0.520, 0.970,0.515,  0],
+];
+const PIXELS = [];
+for (const [,n,x0,y0,x1,y1,side] of SEGMENTS){
+  for(let k=0;k<n;k++){
+    const f = n===1 ? .5 : k/(n-1);
+    PIXELS.push({x:x0+(x1-x0)*f, y:y0+(y1-y0)*f, side});
+  }
+}
+
+/* ---- phase helpers: the direction invariant ---- */
+const fracf = v => { const f = v - Math.trunc(v); return f<0 ? f+1 : f; };
+const phaseAt    = (x,t,s) => fracf(x - t*s);
+const behindHead = (x,t,s) => fracf(t*s - x);
+
+/* ---- palette lookup ---- */
+function pal(name, idx){
+  const a = PAL[name]; idx = Math.max(0, Math.min(255, idx));
+  for(let i=0;i<a.length-1;i++){
+    const [p0,r0,g0,b0] = a[i], [p1,r1,g1,b1] = a[i+1];
+    if(idx>=p0 && idx<=p1){
+      const f = p1===p0 ? 0 : (idx-p0)/(p1-p0);
+      return [r0+(r1-r0)*f, g0+(g1-g0)*f, b0+(b1-b0)*f];
+    }
+  }
+  const l = a[a.length-1]; return [l[1],l[2],l[3]];
+}
+const scale = (c,f) => f<=0 ? [0,0,0] : [c[0]*f, c[1]*f, c[2]*f];
+const maxc  = (a,b) => [Math.max(a[0],b[0]), Math.max(a[1],b[1]), Math.max(a[2],b[2])];
+function hsv(h,s,v){
+  h=(h%256)/256*6; const i=Math.floor(h), f=h-i;
+  s/=255; v/=255;
+  const p=v*(1-s), q=v*(1-s*f), u=v*(1-s*(1-f));
+  const t=[[v,u,p],[q,v,p],[p,v,u],[p,q,v],[u,p,v],[v,p,q]][i%6];
+  return [t[0]*255,t[1]*255,t[2]*255];
+}
+
+/* value noise, standing in for FastLED's inoise8 */
+const NP = new Uint8Array(512);
+(function(){ let s=1337; for(let i=0;i<512;i++){ s=(s*1103515245+12345)&0x7fffffff; NP[i]=s>>>16&255; } })();
+function noise2(x,y){
+  const xi=Math.floor(x)&255, yi=Math.floor(y)&255;
+  const xf=x-Math.floor(x), yf=y-Math.floor(y);
+  const sm=t=>t*t*(3-2*t);
+  const u=sm(xf), v=sm(yf);
+  const g=(a,b)=>NP[(a+NP[b&255])&255];
+  const a=g(xi,yi), b=g(xi+1,yi), c=g(xi,yi+1), d=g(xi+1,yi+1);
+  return (a+(b-a)*u)*(1-v) + (c+(d-c)*u)*v;
+}
+
+/* ---- sparks ---- */
+let sparks=[], spawnAcc=0;
+function sparkTick(p, dt){
+  for(const s of sparks){ s.x += p.speed*dt; s.age += dt; }
+  sparks = sparks.filter(s => s.x<=1.05 && s.age<=s.life);
+  spawnAcc += p.param*dt;
+  while(spawnAcc>=1 && sparks.length<28){
+    spawnAcc-=1;
+    sparks.push({x:-0.02, age:0, life:1.2+Math.random()*1.8, hue:Math.random()*255});
+  }
+}
+
+/* ---- shade one pixel: ports animations.cpp ---- */
+function shade(m, palName, p, px, t){
+  switch(m){
+    case M.BLOCK:{
+      const u = phaseAt(px.x,t,p.speed), d = u<0.5 ? u : 1-u, half = p.width/2;
+      if(d<=half){
+        let edge=1; const soft=half*0.20;
+        if(soft>0 && d>half-soft) edge=(half-d)/soft;
+        return scale(pal(palName, 128+(d/half)*100), edge);
+      }
+      return scale(pal(palName,0), p.bg/255*0.35);
+    }
+    case M.COMET:{
+      const b = behindHead(px.x,t,p.speed);
+      const amp = Math.exp(-b/Math.max(p.param,0.001));
+      let out = scale(pal(palName, 255*(1-amp)), amp);
+      if(p.bg) out = maxc(out, scale(pal(palName,8), p.bg/255*0.30));
+      return out;
+    }
+    case M.GRADIENT:
+      return pal(palName, fracf(phaseAt(px.x,t,p.speed)*p.param)*255);
+    case M.RAINBOW:
+      return hsv(fracf(phaseAt(px.x,t,p.speed)*p.param)*255, 245, 255);
+    case M.SPARKLE:{
+      const u = phaseAt(px.x,t,p.speed*0.25);
+      let out = scale(pal(palName,u*255), p.bg/255*0.22);
+      const sg = Math.max(p.width/2, 0.004);
+      for(const s of sparks){
+        const d = px.x - s.x;
+        if(d<-0.12||d>0.12) continue;
+        const g = Math.exp(-(d*d)/(2*sg*sg)) * (1 - s.age/s.life);
+        out = maxc(out, scale(pal(palName, s.hue), g));
+      }
+      return out;
+    }
+    case M.BARBER:{
+      const off = px.side<0 ? 0 : (px.side>0 ? 0.5 : 0.25);
+      const u = fracf(phaseAt(px.x,t,p.speed)*p.param + off);
+      const band = u<0.5 ? 0 : 255;
+      const edgeD = Math.min(Math.abs(u-0.5), Math.min(u,1-u)), soft=0.06;
+      let c = pal(palName, band);
+      if(edgeD<soft){
+        const o = pal(palName, band?0:255), f=(0.5+(edgeD/soft)*0.5);
+        c = [o[0]+(c[0]-o[0])*f, o[1]+(c[1]-o[1])*f, o[2]+(c[2]-o[2])*f];
+      }
+      return c;
+    }
+    case M.PULSE:{
+      const base = pal(palName, px.x*255);
+      const wave = 0.5+0.5*Math.cos(phaseAt(px.x,t,p.speed)*p.param*Math.PI*2);
+      return scale(base, p.bg/255 + (1-p.bg/255)*wave);
+    }
+    case M.EMBER:{
+      const q = (px.x - t*p.speed)*p.param;
+      let h = noise2(fracf(q/16)*48, px.y*9);
+      h = Math.max(0,h-16); h = Math.min(255, h*200/255 + 24);
+      return pal(palName, h);
+    }
+  }
+  return [0,0,0];
+}
+
+/* ---- bike schematic, in millimetres (x*1509, y*1350) ---- */
+const WB=1509, HT=1350;
+const BIKE = {
+  wheels:[[0,410,410],[1509,415,415]],
+  lines:[
+    [[60,880],[0,430]],                                   // fork
+    [[130,1160],[300,1130]],                              // bar / riser
+    [[95,1010],[250,1090],[300,1130]],                    // upper fork / clamp
+    [[180,760],[300,700]],                                // beak
+    [[300,1130],[430,980],[700,960],[760,880]],           // tank top
+    [[430,980],[400,640],[560,600]],                      // tank side down
+    [[760,880],[840,860],[1150,850],[1290,840]],          // seat + tail top
+    [[1290,840],[1330,700]],                              // tail drop
+    [[300,1130],[620,780]],                               // frame spar
+    [[560,600],[560,400],[800,380],[840,520]],            // engine block
+    [[840,520],[1509,415]],                               // swingarm
+    [[840,520],[1180,700]],                               // shock
+    [[800,380],[1150,330],[1330,470]],                    // exhaust
+    [[620,780],[840,520]],                                // frame to pivot
+  ]
+};
+
+/* ---- render ---- */
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W=1600, H=720, SC=1, OX=0, OY=0;
+
+const XMIN=-460, XMAX=1975, YMAX=1215;      // drawn extent in mm, wheels included
+function layout(){
+  const cssW = cv.parentElement.clientWidth;
+  const dpr = Math.min(devicePixelRatio||1, 2);
+  const pad = 34*dpr;
+  cv.width = Math.round(cssW*dpr);
+  W = cv.width;
+  SC = (W - pad*2)/(XMAX-XMIN);
+  const cssH = Math.round((YMAX*SC + pad*2)/dpr);
+  cv.style.height = cssH+"px";
+  cv.height = Math.round(cssH*dpr);
+  H = cv.height;
+  OX = pad - XMIN*SC;
+  OY = H - pad;
+}
+const PX = mx => OX + mx*SC;
+const PY = my => OY - my*SC;
+
+function drawBike(){
+  ctx.lineWidth = Math.max(1.3, 2.2*SC);
+  ctx.strokeStyle = "#465562"; ctx.lineCap="round"; ctx.lineJoin="round";
+  for(const [cx,cy,r] of BIKE.wheels){
+    ctx.beginPath(); ctx.arc(PX(cx),PY(cy), r*SC, 0, Math.PI*2); ctx.stroke();
+    ctx.save(); ctx.strokeStyle="#333F4B";
+    ctx.beginPath(); ctx.arc(PX(cx),PY(cy), r*SC*0.60, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+  }
+  for(const path of BIKE.lines){
+    ctx.beginPath();
+    path.forEach(([x,y],i)=> i? ctx.lineTo(PX(x),PY(y)) : ctx.moveTo(PX(x),PY(y)));
+    ctx.stroke();
+  }
+  ctx.save();                                   // ground
+  ctx.strokeStyle="#202831"; ctx.lineWidth=Math.max(1,1.6*SC);
+  ctx.beginPath(); ctx.moveTo(PX(-180),PY(0)); ctx.lineTo(PX(WB+180),PY(0)); ctx.stroke();
+  ctx.restore();
+}
+
+function drawFrame(rgbs){
+  ctx.fillStyle = "#12161C"; ctx.fillRect(0,0,W,H);
+  drawBike();
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const r0 = Math.max(4, 25*SC), r1 = Math.max(12, 72*SC);
+  // far side first, dimmed and nudged, so both runs read in a side elevation
+  for(const far of [true,false]){
+    for(let i=0;i<PIXELS.length;i++){
+      const p = PIXELS[i];
+      if(far !== (p.side>0)) continue;
+      const c = rgbs[i]; if(c[0]+c[1]+c[2] < 3) continue;
+      const k = far ? 0.42 : 1;
+      const x = PX(p.x*WB + (far? -16:0)), y = PY(p.y*HT + (far? 26:0));
+      const g = ctx.createRadialGradient(x,y,0, x,y,r1);
+      g.addColorStop(0,   `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${0.55*k})`);
+      g.addColorStop(0.35,`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${0.16*k})`);
+      g.addColorStop(1,   "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,r1,0,Math.PI*2); ctx.fill();
+      const cg = ctx.createRadialGradient(x,y,0, x,y,r0);
+      cg.addColorStop(0, `rgba(${Math.min(255,c[0]*1.5)|0},${Math.min(255,c[1]*1.5)|0},${Math.min(255,c[2]*1.5)|0},${0.95*k})`);
+      cg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(x,y,r0,0,Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+/* ---- state ---- */
+let cur=0, prev=0, fadeStart=0, bLevel=2, sLevel=1, t=0, last=0, bootAt=-1;
+
+function paramsFor(i){
+  const P = PRESETS[i];
+  return {speed:P[3]*SPEEDS[sLevel], width:P[4], param:P[5], bg:P[6], pal:P[2], m:P[1]};
+}
+function renderPreset(i, tt, out){
+  const p = paramsFor(i);
+  for(let k=0;k<PIXELS.length;k++) out[k] = shade(p.m, p.pal, p, PIXELS[k], tt);
+}
+const bufA = new Array(PIXELS.length), bufB = new Array(PIXELS.length);
+
+/* power estimator, straight from power.cpp */
+function estimate(rgbs, brightness){
+  let sum=0; for(const c of rgbs) sum += c[0]+c[1]+c[2];
+  const duty = sum/(765*rgbs.length);
+  return duty*rgbs.length*MA_PER_PIXEL_FULL*brightness;
+}
+
+const easeOut = v => 1-Math.pow(1-v,3);
+function bootFrame(ms, out){
+  const p = paramsFor(cur);
+  const band=(x,cx,hw)=>{ const d=Math.abs(x-cx); return d>=hw?0:Math.pow(1-d/hw,2); };
+  for(let k=0;k<PIXELS.length;k++){
+    const px = PIXELS[k]; let c=[0,0,0];
+    if(ms<=300){ const a=band(px.x,-0.15+(ms/300)*1.30,0.13); c=maxc(c,[255*a,250*a,235*a]); }
+    if(ms>=260&&ms<=540){ const a=band(px.x,-0.15+((ms-260)/280)*1.30,0.18); c=maxc(c,[255*a,255*a,255*a]); }
+    if(ms>=540){
+      const pc = shade(p.m,p.pal,p,px,0);
+      let amp,white;
+      if(ms<=1120){ const u=(ms-540)/580, e=easeOut(u); amp=e*1.15; white=Math.max(0,1-u*1.4); }
+      else        { const u=(ms-1120)/330; amp=1.15-0.15*easeOut(u); white=0; }
+      const bl=[pc[0]+(255-pc[0])*white, pc[1]+(252-pc[1])*white, pc[2]+(245-pc[2])*white];
+      c = maxc(c, scale(bl, Math.min(1,amp)));
+    }
+    out[k]=c;
+  }
+}
+
+const roMotion=document.getElementById("roMotion"), roSpeed=document.getElementById("roSpeed"),
+      roPix=document.getElementById("roPix"), roAmps=document.getElementById("roAmps"),
+      roBar=document.getElementById("roBar"), tagName=document.getElementById("tagName");
+
+function tick(now){
+  if(!last) last=now;
+  let dt=(now-last)/1000; last=now;
+  if(dt>0.25) dt=0.25;
+  const p = paramsFor(cur);
+  if(p.m===M.SPARKLE) sparkTick(p, dt);
+  if(!REDUCED) t += dt;
+
+  if(bootAt>=0){
+    const ms = now-bootAt;
+    if(ms>1450){ bootAt=-1; } else { bootFrame(ms, bufA); }
+  }
+  if(bootAt<0){
+    renderPreset(cur, t, bufA);
+    const since = now-fadeStart;
+    if(fadeStart && since<400){
+      renderPreset(prev, t, bufB);
+      const mix = since/400;
+      for(let k=0;k<bufA.length;k++)
+        bufA[k]=[bufB[k][0]+(bufA[k][0]-bufB[k][0])*mix,
+                 bufB[k][1]+(bufA[k][1]-bufB[k][1])*mix,
+                 bufB[k][2]+(bufA[k][2]-bufB[k][2])*mix];
+    } else fadeStart=0;
+  }
+
+  let want = BRIGHT[bLevel];
+  let mA = estimate(bufA, want), limited=false;
+  if(mA>MAX_MA){ want *= MAX_MA/mA; mA = MAX_MA; limited=true; }
+
+  const shown = bufA.map(c=>scale(c,want));
+  drawFrame(shown);
+
+  let lit=0; for(const c of shown) if(c[0]+c[1]+c[2]>8) lit++;
+  roPix.innerHTML = lit + ' <small>/ ' + PIXELS.length + '</small>';
+  roAmps.innerHTML = Math.round(mA) + ' <small>mA</small>';
+  roBar.style.width = Math.min(100, mA/MAX_MA*100)+"%";
+  roBar.style.background = limited ? "var(--warn)" : "var(--ok)";
+  requestAnimationFrame(tick);
+}
+
+/* ---- controls ---- */
+const chipHost=document.getElementById("presets");
+PRESETS.forEach((P,i)=>{
+  const b=document.createElement("button");
+  b.className="chip"; b.type="button"; b.setAttribute("aria-pressed", i===0?"true":"false");
+  const sw = pal(P[2], P[1]===M.BLOCK||P[1]===M.COMET ? 140 : 96);
+  b.innerHTML = `<i style="background:rgb(${sw.map(v=>v|0).join(",")})"></i>${P[0]}`;
+  b.onclick=()=>{
+    if(i===cur) return;
+    prev=cur; cur=i; fadeStart=performance.now(); sparks=[]; spawnAcc=0;
+    [...chipHost.children].forEach((c,k)=>c.setAttribute("aria-pressed", k===i?"true":"false"));
+    const p=paramsFor(i);
+    roMotion.textContent = MNAME[p.m];
+    roSpeed.innerHTML = p.speed.toFixed(2)+' <small>bike-lengths/s</small>';
+    tagName.textContent = PRESETS[i][0];
+  };
+  chipHost.appendChild(b);
+});
+function seg(host, labels, get, set){
+  labels.forEach((L,i)=>{
+    const b=document.createElement("button"); b.type="button"; b.textContent=L;
+    b.setAttribute("aria-pressed", get()===i?"true":"false");
+    b.onclick=()=>{ set(i); [...host.children].forEach((c,k)=>c.setAttribute("aria-pressed",k===i?"true":"false"));
+      const p=paramsFor(cur); roSpeed.innerHTML=p.speed.toFixed(2)+' <small>bike-lengths/s</small>'; };
+    host.appendChild(b);
+  });
+}
+seg(document.getElementById("bright"), ["18%","40%","70%","100%"], ()=>bLevel, v=>bLevel=v);
+seg(document.getElementById("speed"),  ["0.55x","1.0x","1.7x"],    ()=>sLevel, v=>sLevel=v);
+document.getElementById("bootBtn").onclick=()=>{ bootAt=performance.now(); };
+
+addEventListener("resize", layout);
+layout();
+roSpeed.innerHTML = paramsFor(0).speed.toFixed(2)+' <small>bike-lengths/s</small>';
+bootAt = performance.now();
+requestAnimationFrame(tick);
+</script>

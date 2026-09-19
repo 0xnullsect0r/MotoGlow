@@ -19,6 +19,11 @@ tools/               Host test for the direction invariant
 Start with [docs/PARTS.md](docs/PARTS.md), then
 [docs/BUILD.md](docs/BUILD.md).
 
+**[Preset bench](https://claude.ai/artifact/BSTM89HNMauqSr1nQH6gRN)** — all sixteen
+presets running live on a side elevation of the bike, at the coordinates the
+firmware actually uses, with the firmware's own current estimator reporting what
+each one draws. A local copy is at `docs/preset-bench.html`.
+
 ---
 
 ## The one idea worth reading about
