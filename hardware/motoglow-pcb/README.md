@@ -18,10 +18,17 @@ board is that you solder it yourself in an evening.
 ## Regenerating
 
 ```
-python3 gen_pico_fp.py     # writes lib.pretty/RPi_Pico_2W_Horizontal.kicad_mod
-python3 route.py           # export DSN -> freerouting -> import SES -> pour
-python3 verify_board.py    # connectivity, clearance, edge, pour checks
+python3 gen_pico_fp.py      # writes lib.pretty/RPi_Pico_2W_Horizontal.kicad_mod
+python3 route.py            # export DSN -> freerouting -> import SES -> pour
+python3 verify_board.py     # connectivity, clearance, edge, pour, silkscreen
+python3 verify_fit.py       # does the enclosure fit this board?
+python3 export_pcb_data.py  # hand the board's real dimensions to the CAD
 ```
+
+`mech.py` holds every number that couples the board to the enclosure, and both
+sides read it. `../../cad/build.sh` runs the exporter and the fit check before
+it renders anything, so a board change that breaks the case stops the build
+rather than the print.
 
 `route.py` needs `freerouting.jar` (set `FREEROUTING_JAR`) and runs it under
 `xvfb-run`, because freerouting insists on a display even in batch mode.
@@ -48,8 +55,16 @@ so `verify_board.py` does the job geometrically. It checks four things:
   through at least two thermal spokes. A pad sitting inside its relief with no
   spoke bridging to the pour looks perfect on screen and is not connected.
 
+`verify_fit.py` is the fifth check, and the one this project learned the hard
+way. Revision A shipped a case built for a 75 x 55 mm board that had since
+become 80 x 60, with all six connector bodies landing inside components. Both
+halves passed their own checks perfectly; nothing compared them. It also has a
+negative test: forcing revision A's geometry back in makes it report all 19
+collisions.
+
 Current state: **0 unconnected nets, 0 clearance violations, 0 edge violations,
-pour is 1 region with all 35 ground pads connected.**
+0 silkscreen over pads, pour is 1 region with all 35 ground pads connected,
+0 connector/component collisions.**
 
 ## Two things worth knowing before you power it
 
@@ -57,6 +72,12 @@ pour is 1 region with all 35 ground pads connected.**
 unidirectional TVS across the input. Connect the battery backwards and D2
 conducts, which is only a protection strategy if there is a fuse for it to
 blow. Without one, D2 becomes the fuse, once.
+
+**Tall parts live in the middle of the board.** Anything standing within 14 mm
+of an edge shares that space with a panel connector's barrel, so `mech.py` caps
+it at 11 mm — the height of the screw terminals, which genuinely have to be on
+the edge. That is why Q1, C1 and D2 are in the middle rather than tucked
+tidily against a wall. `verify_fit.py` enforces it.
 
 **Q1 is the master switch and the handlebar toggle barely touches it.** Q1 is a
 P-channel MOSFET with its source on the battery; the toggle pulls its gate down

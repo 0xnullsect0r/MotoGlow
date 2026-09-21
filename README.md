@@ -92,6 +92,9 @@ floor — the frame-tube saddle is a separate part for exactly that reason.
   ten minutes with a tape measure — see [docs/BIKE_MAP.md](docs/BIKE_MAP.md).
 - Nothing here has been built in the physical world. Every check that can be run
   in software has been; none of it has been run on a bike.
+- The box is 115 × 110 × 43 mm. It is bigger than the first revision because
+  panel connectors need real space inboard of the wall, which that revision
+  did not give them.
 - IP65–66 realistically, not IP68. Rain, spray and a hose are fine. A pressure
   washer lance is not, whatever anyone claims about FDM parts.
 - There's no brake or turn-signal integration, by choice. Strip runs and the
@@ -110,5 +113,7 @@ floor — the frame-tube saddle is a separate part for exactly that reason.
 | Firmware | Compiles clean for `rp2040:rp2040:rpipico2w` at `--warnings all`; 8% flash, 14% RAM |
 | Direction invariant | 18 host assertions pass (`g++ -o /tmp/t tools/test_phase.cpp && /tmp/t`) |
 | Enclosure | All 5 STLs render 2-manifold; dimensions checked against the parameters |
-| PCB | 0 unconnected nets, 0 clearance violations below 0.25 mm, 0 items within 0.3 mm of the outline, ground pour is a single region reaching all 35 ground pads |
-| Fab output | 124 plated drill hits + 4 NPTH at 2.7 mm, matching the design exactly |
+| PCB | 0 unconnected nets, 0 clearance violations below 0.25 mm, 0 items within 0.3 mm of the outline, 0 silkscreen over pads, ground pour is a single region reaching all 35 ground pads |
+| Case ↔ PCB | `verify_fit.py`: board fits, posts land on the real holes, 0 connector/component collisions, 0 keep-out violations |
+| Part pinouts | IRF4905, R-78E5.0, 74AHCT125, Pico row pitch and all three diode footprints checked against datasheets, not memory |
+| Fab output | 128 plated drill hits + 4 NPTH at 2.7 mm, matching the design exactly |

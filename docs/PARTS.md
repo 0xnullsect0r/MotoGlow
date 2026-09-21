@@ -22,9 +22,10 @@ into what you almost certainly need to buy and what you may already own.
 | 1 | DIP-14 socket | | 0.20 |
 | 1 | **1.5KE18A** TVS diode, DO-201AD | Transient clamp and reverse-polarity crowbar. | 0.50 |
 | 1 | BZX55C15 15 V zener, DO-35 | Gate clamp for Q1. | 0.10 |
+| 1 | 1N5819 Schottky, DO-41 | Stops the Pico back-feeding the 5 V rail over USB. | 0.10 |
 | 1 | 470 µF 35 V electrolytic, 10 mm | **35 V, not 25 V** — a 16 V part will not survive a load dump. | 0.40 |
 | 1 | 10 µF 16 V electrolytic, 5 mm | | 0.10 |
-| 5 | 100 nF ceramic, 5 mm pitch | | 0.50 |
+| 6 | 100 nF ceramic, 5 mm pitch | One of them, C8, is Q1's soft-start. | 0.60 |
 | 11 | ¼ W resistors: 100 k, 47 k, 10 k ×2, 1 k, 470 R, 330 R ×4 | Mounted standing up. | 0.50 |
 | 1 | 3 mm LED, any colour | Status indicator, only visible with the lid off. | 0.10 |
 | 5 | 3.5 mm 4-way screw terminal (KF128 / Phoenix PT-1,5-4-3.5-H) | J2–J6 | 2.50 |
@@ -80,7 +81,7 @@ billet aluminium for around $70 each. Nothing in the design cares.
 
 ### Printed parts
 
-~80 g of **ASA**. Not PETG and definitely not PLA: this box sits in the sun on a
+~110 g of **ASA** (the box is 115 × 110 × 43 mm). Not PETG and definitely not PLA: this box sits in the sun on a
 bike. ASA holds about 100 °C and is UV-stable; PLA will sag in a closed car park
 in August. Your X1C is enclosed and its stock nozzle is hardened, so you already
 have everything you need — dry the filament at 80 °C for 8 hours first, run the

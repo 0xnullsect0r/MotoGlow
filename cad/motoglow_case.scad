@@ -45,34 +45,36 @@ function screw_pts() =
 module screw_positions() { for (p = screw_pts()) translate([p[0], p[1], 0]) children(); }
 
 // ─── Ports ───────────────────────────────────────────────────────────────────
-// Positions are (face, offset-along-face). Faces:
-//   "xn" = front end (toward the front of the bike), "xp" = rear end,
-//   "yn" = the long side that carries the handlebar cable and battery feed.
-//
-// Run 0 and Run 1 are the two side chains and leave from the front end.
-// Run 2 (engine) and Run 3 (tail) leave from the rear end.
-ports = [
-  ["xn", -13.0, sp13_hole,  "RUN0 left chain" ],
-  ["xn",  13.0, sp13_hole,  "RUN1 right chain"],
-  ["xp", -13.0, sp13_hole,  "RUN2 engine"     ],
-  ["xp",  13.0, sp13_hole,  "RUN3 tail"       ],
-  ["yn", -20.0, sp13_hole,  "handlebar"       ],
-  ["yn",  20.0, gland_hole, "battery feed"    ],
-];
+// The port list comes from pcb_data.scad in BOARD coordinates, so it cannot
+// drift from what the board actually needs. Board coordinates have their
+// origin at the board's bottom-left corner; the case is centred on the origin,
+// so a board point maps to the case by subtracting half the board size.
+function b2c_x(bx) = bx - pcb_x/2;
+function b2c_y(by) = by - pcb_y/2;
+
+// Inside face of each wall, in case coordinates.
+function wall_in(face) =
+    face == "W" ? -inner_x/2 : face == "E" ? inner_x/2 :
+    face == "N" ? -inner_y/2 : inner_y/2;
 
 module port_cuts() {
   z = floor_t + port_z;
   for (p = ports) {
-    face = p[0]; off = p[1]; d = p[2] * shrink;
-    if (face == "xn")
-      translate([-shell_x/2 - 1, off, z]) rotate([0, 90, 0])
-        cylinder(d = d, h = wall + 2);
-    if (face == "xp")
-      translate([ shell_x/2 + 1, off, z]) rotate([0, -90, 0])
-        cylinder(d = d, h = wall + 2);
-    if (face == "yn")
-      translate([off, -shell_y/2 - 1, z]) rotate([-90, 0, 0])
-        cylinder(d = d, h = wall + 2);
+    face = p[0]; at = p[1]; d = p[2] * shrink;
+    // Start outside the shell and cut right through the wall, with margin at
+    // both ends so the hole is never left blind by a rounding error.
+    if (face == "W")
+      translate([-shell_x/2 - 1, b2c_y(at), z]) rotate([0, 90, 0])
+        cylinder(d = d, h = wall + 3);
+    if (face == "E")
+      translate([ shell_x/2 + 1, b2c_y(at), z]) rotate([0, -90, 0])
+        cylinder(d = d, h = wall + 3);
+    if (face == "N")
+      translate([b2c_x(at), -shell_y/2 - 1, z]) rotate([-90, 0, 0])
+        cylinder(d = d, h = wall + 3);
+    if (face == "S")
+      translate([b2c_x(at),  shell_y/2 + 1, z]) rotate([90, 0, 0])
+        cylinder(d = d, h = wall + 3);
   }
 }
 
@@ -96,16 +98,15 @@ module screw_ears() {
 
 // ─── Tub ─────────────────────────────────────────────────────────────────────
 module pcb_posts() {
-  for (sx = [-1, 1], sy = [-1, 1])
-    translate([sx * (pcb_x/2 - pcb_hole_inset), sy * (pcb_y/2 - pcb_hole_inset), floor_t])
-      cylinder(d = 6.0, h = pcb_standoff);
+  for (h = pcb_holes)
+    translate([b2c_x(h[0]), b2c_y(h[1]), floor_t])
+      cylinder(d = post_d, h = pcb_standoff);
 }
 
 module pcb_post_holes() {
   // M2.5 brass heat-set inserts, pressed in from above.
-  for (sx = [-1, 1], sy = [-1, 1])
-    translate([sx * (pcb_x/2 - pcb_hole_inset), sy * (pcb_y/2 - pcb_hole_inset),
-               floor_t + pcb_standoff - 5.0])
+  for (h = pcb_holes)
+    translate([b2c_x(h[0]), b2c_y(h[1]), floor_t + pcb_standoff - 5.0])
       cylinder(d = 3.4 * shrink, h = 5.2);
 }
 

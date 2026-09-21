@@ -19,6 +19,8 @@ Five STLs land in `cad/stl/`:
 | `motoglow_strip_clips_x8.stl` | 2–3 | Eight per plate. Print as many as you need. |
 | `motoglow_strip_endcaps_x4.stl` | 1 | One per cut strip end. Count your cuts. |
 
+The box is 115 × 110 × 43 mm, so the tub is a ~6 hour print.
+
 **ASA on the X1C:** dry at 80 °C for 8 h, nozzle 250 °C, bed 100 °C, chamber
 closed, top glass on, fan off, brim on the tub and lid. Preheat the bed for
 10–15 minutes with the door shut before starting — that pre-warms the chamber
@@ -32,11 +34,14 @@ if you rush.
 
 Order matters — shortest parts first, so the board sits flat on the bench:
 
-1. Resistors (standing), zener D1, TVS D2
+1. Resistors (standing), zener D1, Schottky D3, TVS D2
 2. DIP-14 socket (note the notch), ceramic caps
-3. Electrolytics C1 and C3 — **check polarity**, pad 1 is marked `+`
+3. Electrolytics C1 and C3 — **check polarity**. The stock KiCad electrolytic
+   footprint has no polarity mark of its own, so the board prints a `+` beside
+   pad 1 for each of them. Same for `G D S` at Q1, `IN G 5V` at U1 and `K`/`A`
+   at the status LED: every orientation-sensitive part is labelled.
 4. Q1 (TO-220, lying flat), U1 (R-78E, 3 pins)
-5. LED1 — pad 1 is the anode
+5. LED1 — pad 1 is the **cathode**, pad 2 the anode; both are marked
 6. Terminal blocks, all facing outward
 7. Pico last, on header strips **soldered at both ends**
 

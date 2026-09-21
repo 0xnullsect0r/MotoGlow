@@ -22,11 +22,25 @@ Level shifting. The strips want at least 3.5 V on the data line and the Pico
 puts out 3.3 V. That is marginal on a bench and unreliable on three feet of
 wire next to an ignition system, so U2 buffers all four data lines up to 5 V.
 This is the single most common reason a home-built strip controller glitches.
+
+Soft start. C8 across Q1's gate and source slows turn-on from tens of
+microseconds to about a millisecond, so switching on does not slam 470 uF of
+bulk capacitance plus four strip runs onto the battery in one step.
+
+USB coexistence. D3 stops the Pico back-feeding the 5 V rail when it is
+plugged into USB with the bike's supply off, which would otherwise push
+current backwards through U1 and weakly energise the strip rail.
+
+MECHANICAL. Placement here obeys mech.py: anything standing within 14 mm of a
+board edge shares that space with a panel connector's body, so it may be no
+taller than the screw terminals. Q1, C1 and D2 are tall and therefore live in
+the middle of the board, not at its edges. verify_fit.py enforces this.
 """
 import pcbnew, os, sys
+import mech
 
 MM   = pcbnew.FromMM
-BW, BH = 80.0, 60.0                       # board size
+BW, BH = mech.BOARD_W, mech.BOARD_H       # board size, from mech.py
 HERE = os.path.dirname(os.path.abspath(__file__))
 SYSFP = '/usr/share/kicad/footprints'
 
@@ -35,29 +49,31 @@ SYSFP = '/usr/share/kicad/footprints'
 PARTS = [
  ("U3","LOCAL","RPi_Pico_2W_Horizontal",            40,13,   0,"Pico 2 W",""),
  ("U2","Package_DIP","DIP-14_W7.62mm_Socket",44,28,0,"74AHCT125N",""),
- ("U1","Converter_DCDC","Converter_DCDC_RECOM_R-78E-0.5_THT",60,31,0,"R-78E5.0-1.0",""),
- ("Q1","Package_TO_SOT_THT","TO-220-3_Vertical",8,29,0,"IRF4905",""),
- ("C1","Capacitor_THT","CP_Radial_D10.0mm_P5.00mm",70,40,0,"470uF 35V",""),
- ("C3","Capacitor_THT","CP_Radial_D5.0mm_P2.50mm",58,37,0,"10uF 16V",""),
- ("C2","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",58,42,0,"100nF",""),
- ("C4","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",58,46,0,"100nF",""),
+ ("U1","Converter_DCDC","Converter_DCDC_RECOM_R-78E-0.5_THT",58,31,0,"R-78E5.0-1.0",""),
+ ("Q1","Package_TO_SOT_THT","TO-220-3_Vertical",18,28,0,"IRF4905",""),
+ ("C1","Capacitor_THT","CP_Radial_D10.0mm_P5.00mm",20,38,0,"470uF 35V",""),
+ ("C3","Capacitor_THT","CP_Radial_D5.0mm_P2.50mm",58,43,0,"10uF 16V",""),
+ ("C2","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",58,38,0,"100nF",""),
+ ("C4","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",67,47,0,"100nF",""),
  ("C5","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",36,43,0,"100nF",""),
- ("C6","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",36,31,0,"100nF",""),
- ("C7","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",32,35,0,"100nF",""),
- ("D2","Diode_THT","D_DO-201AD_P3.81mm_Vertical_KathodeUp",76,29,90,"1.5KE18A",""),
- ("D1","Diode_THT","D_DO-35_SOD27_P2.54mm_Vertical_KathodeUp",8,34,0,"BZX55C15",""),
- ("R1","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",4,39,0,"100k",""),
- ("R2","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",10,39,0,"10k",""),
+ ("C6","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",70,37,0,"100nF",""),
+ ("C7","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",70,42,0,"100nF",""),
+ ("D2","Diode_THT","D_DO-201AD_P3.81mm_Vertical_KathodeUp",32,32,90,"1.5KE18A",""),
+ ("D1","Diode_THT","D_DO-35_SOD27_P2.54mm_Vertical_KathodeUp",6,33,0,"BZX55C15",""),
+ ("R1","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",4,38,0,"100k",""),
+ ("R2","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",10,38,0,"10k",""),
  ("R3","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",18,47,0,"330",""),
  ("R4","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",28,47,0,"330",""),
  ("R5","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",38,47,0,"330",""),
  ("R6","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",48,47,0,"330",""),
- ("R7","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",70,22,0,"10k",""),
- ("R8","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",38,27,0,"1k",""),
- ("R9","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",28,27,0,"47k",""),
- ("R10","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",28,31,0,"10k",""),
- ("R11","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",4,46,0,"470",""),
- ("LED1","LED_THT","LED_D3.0mm",9,46,0,"STATUS",""),
+ ("R7","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",69,22,0,"10k",""),
+ ("R8","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",70,27,0,"1k",""),
+ ("R9","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",70,32,0,"47k",""),
+ ("R10","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",76,32,0,"10k",""),
+ ("R11","Resistor_THT","R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical",4,43,0,"470",""),
+ ("C8","Capacitor_THT","C_Disc_D5.0mm_W2.5mm_P5.00mm",30,37,0,"100nF",""),
+ ("D3","Diode_THT","D_DO-41_SOD81_P2.54mm_Vertical_KathodeUp",75,22,0,"1N5819",""),
+ ("LED1","LED_THT","LED_D3.0mm",9,43,0,"STATUS",""),
  ("J1","TerminalBlock_Phoenix","TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",
                                                     72,16,  90,"12V IN",""),
  ("J6","TerminalBlock_Phoenix","TerminalBlock_Phoenix_PT-1,5-4-3.5-H_1x04_P3.50mm_Horizontal",
@@ -80,16 +96,17 @@ PARTS = [
 # Polarity conventions, all marked on the silkscreen by add_polarity_marks():
 #   D1, D2  pad 1 = cathode (the footprints already silk a "K" there)
 #   C1, C3  pad 1 = positive
-#   LED1    pad 1 = anode
+#   LED1    pad 1 = CATHODE, pad 2 = anode (KiCad's Device:LED pin 1 is K)
 #   Q1      1 = gate, 2 = drain, 3 = source   (IRF4905 TO-220AB)
 #   U1      1 = Vin,  2 = GND,   3 = Vout     (RECOM R-78E)
 NETS = {
- "BAT+":   [("J1","1"),("D2","1"),("Q1","3"),("R1","2"),("D1","1")],
- "GATE":   [("Q1","1"),("R1","1"),("R2","1"),("D1","2")],
+ "BAT+":   [("J1","1"),("D2","1"),("Q1","3"),("R1","2"),("D1","1"),("C8","2")],
+ "GATE":   [("Q1","1"),("R1","1"),("R2","1"),("D1","2"),("C8","1")],
  "SW_A":   [("R2","2"),("J6","1")],
  "+12VSW": [("Q1","2"),("C1","1"),("C2","1"),("U1","1"),("R9","1"),
             ("J2","1"),("J3","1"),("J4","1"),("J5","1")],
- "+5V":    [("U1","3"),("C3","1"),("C4","1"),("U2","14"),("U3","39")],
+ "+5V":    [("U1","3"),("C3","1"),("C4","1"),("U2","14"),("D3","2")],
+ "VSYS":   [("D3","1"),("U3","39")],
  "+3V3":   [("U3","36"),("R7","1")],
  "GP2":    [("U3","4"),("U2","2")],
  "GP3":    [("U3","5"),("U2","5")],
@@ -107,13 +124,13 @@ NETS = {
  "GP6":    [("R8","2"),("U3","9"),("C6","1")],
  "VSENSE": [("R9","2"),("R10","1"),("C7","1"),("U3","31")],
  "GP7":    [("U3","10"),("R11","1")],
- "LED_A":  [("R11","2"),("LED1","1")],
+ "LED_A":  [("R11","2"),("LED1","2")],
  "GND":    [("J1","2"),("D2","2"),("C1","2"),("C2","2"),("C3","2"),("C4","2"),
             ("C5","2"),("C6","2"),("C7","2"),("U1","2"),("C5","1"),
             ("U2","1"),("U2","4"),("U2","7"),("U2","10"),("U2","13"),
             ("U3","3"),("U3","8"),("U3","13"),("U3","18"),
             ("U3","23"),("U3","28"),("U3","33"),("U3","38"),
-            ("R10","2"),("LED1","2"),
+            ("R10","2"),("LED1","1"),
             ("J2","2"),("J2","4"),("J3","2"),("J3","4"),
             ("J4","2"),("J4","4"),("J5","2"),("J5","4"),
             ("J6","2"),("J6","4")],
@@ -122,6 +139,16 @@ NETS = {
 # GND list above stays a simple flat dump of every grounded pad.
 NETS["GND"].remove(("C5","1"))
 NETS["+5V"].append(("C5","1"))
+
+# A hand-written netlist can assign one pad to two nets, and whichever is
+# applied last silently wins -- which is how C8 briefly shorted BAT+ to GND.
+_seen = {}
+for _net, _pads in NETS.items():
+    for _p in _pads:
+        if _p in _seen:
+            raise SystemExit(f"pad {_p[0]}.{_p[1]} is on both "
+                             f"{_seen[_p]} and {_net}")
+        _seen[_p] = _net
 
 
 def _text(board, txt, x, y, size, layer, mirror=False, bold=False, just=None):
@@ -139,19 +166,54 @@ def _text(board, txt, x, y, size, layer, mirror=False, bold=False, just=None):
     return t
 
 
-def add_silkscreen(board):
-    """Front title, and a full connector legend on the back.
+# Pin labels: (ref, pad, text, dx, dy) with the offset from the pad in mm.
+# Every part whose orientation matters gets its function printed next to the
+# pad, taken from the netlist above. The stock KiCad electrolytic footprint
+# carries no polarity mark at all, and a TO-220 can be inserted either way
+# round, so without these the board is genuinely ambiguous to assemble.
+PIN_LABELS = [
+    ("Q1","1","G",   0.0,  2.9), ("Q1","2","D", 0.0, 2.9), ("Q1","3","S", 0.0, 2.9),
+    ("U1","1","IN",  0.0,  4.2), ("U1","2","G", 0.0, 4.2), ("U1","3","5V",0.0, 4.2),
+    ("C1","1","+",  -4.2,  0.0),
+    ("C3","1","+",  -3.2,  0.0),
+    ("LED1","1","K", 0.0,  3.4), ("LED1","2","A", 0.0, 3.4),
+    ("J1","1","+",   6.5,  0.0), ("J1","2","-",  6.5, 0.0),
+    ("J6","1","SW", -5.6,  0.0), ("J6","2","G", -5.6, 0.0),
+    ("J6","3","BTN",-5.6,  0.0), ("J6","4","G", -5.6, 0.0),
+]
 
-    There is nowhere on the front to print connector pinouts -- the terminal
-    blocks sit against the board edge and their own bodies would cover any text
-    next to them. The back of the board is completely empty, so the legend goes
-    there, where you can read it while the loom is in your hands. Polarity marks
-    for the diodes, electrolytics and the LED come from the stock footprints.
+# One line under each strip connector, naming the run and its pin order.
+RUN_LABELS = [("J2","RUN0 L"), ("J3","RUN1 R"), ("J4","RUN2 ENG"), ("J5","RUN3 TAIL")]
+
+
+def add_silkscreen(board):
+    """Assembly markings on the front, full connector legend on the back.
+
+    The terminal blocks sit against the board edge and their own bodies would
+    cover anything printed beside them, so the pinout legend goes on the back,
+    where there is nothing and you can read it with the loom in your hands.
     """
-    _text(board, "MOTOGLOW  CONTROLLER  v1", BW/2, 26.5, 1.4, pcbnew.F_SilkS, bold=True)
+    for ref, pad, txt, dx, dy in PIN_LABELS:
+        fp = board.FindFootprintByReference(ref)
+        if fp is None:
+            continue
+        p = fp.FindPadByNumber(pad)
+        if p is None:
+            continue
+        x = pcbnew.ToMM(p.GetPosition().x) + dx
+        y = pcbnew.ToMM(p.GetPosition().y) + dy
+        _text(board, txt, x, y, 0.85, pcbnew.F_SilkS)
+
+    for ref, name in RUN_LABELS:
+        fp = board.FindFootprintByReference(ref)
+        if fp is None:
+            continue
+        p = fp.FindPadByNumber("1")
+        x = pcbnew.ToMM(p.GetPosition().x) + 5.25          # centre of four pins
+        _text(board, f"{name}  12V G D G", x, BH - 0.9, 0.75, pcbnew.F_SilkS)
 
     legend = [
-        ("MOTOGLOW CONTROLLER v1", 1.6, True),
+        ("MOTOGLOW CONTROLLER v1.1", 1.6, True),
         ("KTM 890 Adventure  -  4x 12V WS2811 runs", 1.0, False),
         ("", 0.8, False),
         ("J1  1:+12V (5A FUSE AT BATTERY)   2:GND", 1.1, False),
@@ -162,17 +224,18 @@ def add_silkscreen(board):
         ("", 0.8, False),
         ("Q1 IRF4905 G-D-S      U1 R-78E5.0 Vin-GND-Vout", 0.95, False),
         ("U2 74AHCT125 (pin1 = notch)   U3 Pico 2 W", 0.95, False),
-        ("D1 BZX55C15  D2 1.5KE18A   pin 1 = cathode", 0.95, False),
+        ("D1 BZX55C15  D2 1.5KE18A  D3 1N5819  pin1 = K", 0.95, False),
         ("C1 470u/35V  C3 10u/16V    pin 1 = positive", 0.95, False),
+        ("LED1 pin1 = K, pin2 = A", 0.95, False),
         ("", 0.8, False),
         ("DO NOT run without the fuse. Reverse polarity", 0.95, False),
         ("is cleared by D2 blowing that fuse.", 0.95, False),
     ]
-    y = 8.0
+    y = 6.0
     for txt, size, bold in legend:
         if txt:
             _text(board, txt, BW/2, y, size, pcbnew.B_SilkS, mirror=True, bold=bold)
-        y += size * 2.0 + 0.8
+        y += size * 2.0 + 0.7
 
 
 def build():

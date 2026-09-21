@@ -23,8 +23,9 @@
                           │  Q1 drain  = +12VSW       J6.2 ──► GND     │
                           │    │                                       │
                           │    ├── C1 470µF/35V ── GND                 │
-                          │    ├── U1 R-78E5.0 ──► +5V ──► Pico VSYS   │
-                          │    │                        └► 74AHCT125   │
+                          │    │   (C8 100nF gate-source = soft start) │
+                          │    ├── U1 R-78E5.0 ──► +5V ──► 74AHCT125  │
+                          │    │                   └─ D3 ─► Pico VSYS  │
                           │    ├── R9/R10 divider ──► Pico GP26 (Vbat) │
                           │    │                                       │
                           │    └── J2.1 J3.1 J4.1 J5.1  (strip +12V)   │
@@ -42,6 +43,15 @@ carries a signal, not 3 amps: thin wire, no volt drop, and any switch you like
 the feel of will outlive the bike. With the toggle open, Q1 is fully off and the
 board draws *nothing*, which is what makes a battery-direct install safe to
 leave for a month.
+
+**Why there's a diode into VSYS.** D3 lets the 5 V rail feed the Pico but not
+the other way round. Without it, plugging in USB with the bike's supply off
+back-feeds 4.7 V into the rail, through U1's output and weakly onto the strip
+supply. Harmless but untidy, and it costs one 10c diode to not happen.
+
+**Why C8 is there.** Q1's gate would otherwise switch in about 36 µs, slamming
+470 µF of bulk capacitance and four strip runs onto the battery in one step.
+C8 across gate and source stretches that to roughly a millisecond.
 
 **Why there's no reverse-polarity MOSFET.** D2 is a unidirectional TVS across
 the input. Wire the battery backwards and it conducts, shorting the input and
@@ -80,6 +90,10 @@ your hands.
 |---|---|---|
 | 1 | +12 V, fused | red, 16 AWG |
 | 2 | GND | black, 16 AWG |
+
+All four strip connectors are on one long face of the box, above the terminal
+block edge, so the pigtails inside stay short. The handlebar connector is on
+one end, the battery gland on the other.
 
 **J2–J5 — strip runs, 3.5 mm terminals, each to one SP13 panel connector**
 

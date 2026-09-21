@@ -254,7 +254,43 @@ def main(path):
           f"{len(pour_bad)} pad(s) with fewer than 2 spokes into copper"
           + (": " + ", ".join(pour_bad) if pour_bad else ""))
 
-    ok = not bad_nets and not viol and not edge and not pour_bad and pour_regions == 1
+    # ── Silkscreen over pads ────────────────────────────────────────────────
+    # A fab will clip silk off a pad, so this is cosmetic -- but silk clipped
+    # away is a legend you cannot read while assembling, which defeats the
+    # point of printing it.
+    silk = []
+    for t in board.GetDrawings():
+        if not isinstance(t, pcbnew.PCB_TEXT):
+            continue
+        # Only the front is checked. The back carries a paragraph-length legend
+        # spanning the whole board, and a few 1.7 mm pad holes punched through
+        # it leave it perfectly readable; a front pin label clipped off its own
+        # pad does not.
+        lay = t.GetLayer()
+        if lay != pcbnew.F_SilkS:
+            continue
+        tb = t.GetTextBox()
+        tx0, tx1 = mm(tb.GetLeft()), mm(tb.GetRight())
+        ty0, ty1 = mm(tb.GetTop()),  mm(tb.GetBottom())
+        side = pcbnew.F_Cu if lay == pcbnew.F_SilkS else pcbnew.B_Cu
+        for fp in board.GetFootprints():
+            for p in fp.Pads():
+                if side not in ({pcbnew.F_Cu, pcbnew.B_Cu}
+                                if p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD
+                                else {p.GetLayer()}):
+                    continue
+                px, py = mm(p.GetPosition().x), mm(p.GetPosition().y)
+                hw, hh = mm(p.GetSize().x)/2, mm(p.GetSize().y)/2
+                if tx1 < px-hw or tx0 > px+hw or ty1 < py-hh or ty0 > py+hh:
+                    continue
+                silk.append(f'"{t.GetText()[:18]}" over {fp.GetReference()}.{p.GetNumber()}')
+                break
+    uniq = sorted(set(silk))
+    print(f"\nSILK: {len(uniq)} text item(s) overlapping a pad"
+          + (": " + "; ".join(uniq[:8]) if uniq else ""))
+
+    ok = (not bad_nets and not viol and not edge and not pour_bad
+          and pour_regions == 1 and not uniq)
     print("\n" + ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
 
